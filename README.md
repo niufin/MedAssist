@@ -89,6 +89,27 @@ php artisan key:generate
 php artisan migrate --seed
 ```
 
+### Create the first Super Admin
+
+Normal user registration creates **patient** accounts only. To access the Super Admin dashboard, you must create (or promote) a user with `role=super_admin`.
+
+**Option A (recommended for MySQL): create super admin via command**
+
+```bash
+php artisan db:restore-mysql --super-admin-email="you@example.com" --super-admin-password="StrongPassword" --skip-medicines
+```
+
+**Option B (any DB): promote an existing user via tinker**
+
+```bash
+php artisan tinker
+>>> $u = App\Models\User::where('email', 'you@example.com')->first();
+>>> $u->role = App\Models\User::ROLE_SUPER_ADMIN;
+>>> $u->status = App\Models\User::STATUS_ACTIVE;
+>>> $u->email_verified_at = now();
+>>> $u->save();
+```
+
 Start the development server for local development:
 ```bash
 php artisan serve
