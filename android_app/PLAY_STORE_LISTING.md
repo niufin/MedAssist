@@ -43,9 +43,6 @@ Your AI-powered healthcare companion for Doctors, Pharmacists, and Patients.
 
 ---
 
-## Keywords / Tags
-Healthcare, Doctor App, Pharmacy Management, Lab Reports, Medical Records, Telemedicine, AI Health, Digital Prescriptions, Patient Care, Hospital Management, MedAssist, NiuFin Cloud.
-
 ## Feature Graphics Text Ideas
 1.  **Unified Healthcare Platform:** Doctors, Pharmacists, Labs & Patients.
 2.  **AI-Powered Diagnosis:** Smarter decisions for better care.
