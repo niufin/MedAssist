@@ -87,7 +87,7 @@ class ReportsController extends Controller
             ->selectRaw($manufacturerSql . ' as label')
             ->selectRaw('COUNT(DISTINCT stock_batches.medicine_id) as medicines')
             ->selectRaw('SUM(stock_batches.quantity_on_hand) as units')
-            ->groupBy($manufacturerExpr)
+            ->groupBy(['manufacturers.name', 'medicines.manufacturer_raw'])
             ->orderByDesc('medicines')
             ->limit(80)
             ->get();
@@ -96,7 +96,7 @@ class ReportsController extends Controller
             ->selectRaw($categorySql . ' as label')
             ->selectRaw('COUNT(DISTINCT stock_batches.medicine_id) as medicines')
             ->selectRaw('SUM(stock_batches.quantity_on_hand) as units')
-            ->groupBy($categoryExpr)
+            ->groupBy(['medicines.therapeutic_class', 'medicines.type'])
             ->orderByDesc('medicines')
             ->limit(80)
             ->get();
@@ -105,7 +105,7 @@ class ReportsController extends Controller
             ->selectRaw($dosageFormSql . ' as label')
             ->selectRaw('COUNT(DISTINCT stock_batches.medicine_id) as medicines')
             ->selectRaw('SUM(stock_batches.quantity_on_hand) as units')
-            ->groupBy($dosageFormExpr)
+            ->groupBy('dosage_forms.name')
             ->orderByDesc('medicines')
             ->limit(80)
             ->get();
