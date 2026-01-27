@@ -50,23 +50,89 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <a href="{{ route('doctor.patients.index') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition">
-                            <div class="font-bold text-gray-800">Patients</div>
-                            <div class="text-xs text-gray-500">View and manage hospital patients</div>
-                        </a>
-                        <a href="{{ route('pharmacy.home') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition">
-                            <div class="font-bold text-gray-800">Pharmacy</div>
-                            <div class="text-xs text-gray-500">Inventory, dispense, invoices</div>
-                        </a>
-                        <a href="{{ route('lab.dashboard') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition">
-                            <div class="font-bold text-gray-800">Lab</div>
-                            <div class="text-xs text-gray-500">Upload and view lab reports</div>
-                        </a>
-                        <a href="{{ route('dashboard') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition">
-                            <div class="font-bold text-gray-800">Interactive Mode</div>
-                            <div class="text-xs text-gray-500">Open the interactive consultation screen</div>
-                        </a>
+                    <div class="flex gap-4 overflow-x-auto pb-2">
+                        <div class="min-w-[260px] flex-1 border rounded-lg p-4 bg-white hover:bg-gray-50 transition">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <a href="{{ route('doctor.patients.index') }}" class="font-bold text-gray-800 hover:text-blue-800">Patients</a>
+                                    <div class="text-xs text-gray-500">View and manage hospital patients</div>
+                                </div>
+                                <a href="{{ route('doctor.patients.index') }}" class="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-1.5 px-3 rounded text-xs">
+                                    Open
+                                </a>
+                            </div>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-800">
+                                    Total: {{ (int) ($moduleStats['patients']['total'] ?? 0) }}
+                                </span>
+                                <a href="{{ route('dashboard') }}" class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-800 hover:bg-blue-100">
+                                    Active consults: {{ (int) ($moduleStats['patients']['active_consultations'] ?? 0) }}
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="min-w-[260px] flex-1 border rounded-lg p-4 bg-white hover:bg-gray-50 transition">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <a href="{{ route('pharmacy.home') }}" class="font-bold text-gray-800 hover:text-blue-800">Pharmacy</a>
+                                    <div class="text-xs text-gray-500">Inventory, dispense, invoices</div>
+                                </div>
+                                <a href="{{ route('pharmacy.home') }}" class="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-1.5 px-3 rounded text-xs">
+                                    Open
+                                </a>
+                            </div>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <a href="{{ route('pharmacy.reports.inventory_overview') }}" class="px-2 py-1 text-xs font-semibold rounded-full bg-slate-50 text-slate-800 hover:bg-slate-100">
+                                    In Stock: {{ (int) ($moduleStats['pharmacy']['in_stock'] ?? 0) }}
+                                </a>
+                                <a href="{{ route('pharmacy.inventory.index', ['near_expiry' => 1]) }}" class="px-2 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-800 hover:bg-red-100">
+                                    About to Expire: {{ (int) ($moduleStats['pharmacy']['near_expiry'] ?? 0) }}
+                                </a>
+                                <a href="{{ route('pharmacy.inventory.index', ['low_stock' => 1]) }}" class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-50 text-yellow-800 hover:bg-yellow-100">
+                                    Low Stock: {{ (int) ($moduleStats['pharmacy']['low_stock'] ?? 0) }}
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="min-w-[260px] flex-1 border rounded-lg p-4 bg-white hover:bg-gray-50 transition">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <a href="{{ route('lab.dashboard') }}" class="font-bold text-gray-800 hover:text-blue-800">Lab</a>
+                                    <div class="text-xs text-gray-500">Upload and view lab reports</div>
+                                </div>
+                                <a href="{{ route('lab.dashboard') }}" class="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-1.5 px-3 rounded text-xs">
+                                    Open
+                                </a>
+                            </div>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-fuchsia-50 text-fuchsia-800">
+                                    Reports (7d): {{ (int) ($moduleStats['lab']['reports_7d'] ?? 0) }}
+                                </span>
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-slate-50 text-slate-800">
+                                    Total reports: {{ (int) ($moduleStats['lab']['reports_total'] ?? 0) }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="min-w-[260px] flex-1 border rounded-lg p-4 bg-white hover:bg-gray-50 transition">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <a href="{{ route('dashboard') }}" class="font-bold text-gray-800 hover:text-blue-800">Interactive Mode</a>
+                                    <div class="text-xs text-gray-500">Open the interactive consultation screen</div>
+                                </div>
+                                <a href="{{ route('dashboard') }}" class="shrink-0 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-1.5 px-3 rounded text-xs">
+                                    Open
+                                </a>
+                            </div>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-800">
+                                    Active: {{ (int) ($moduleStats['interactive']['active'] ?? 0) }}
+                                </span>
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-slate-50 text-slate-800">
+                                    Total: {{ (int) ($moduleStats['interactive']['total'] ?? 0) }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

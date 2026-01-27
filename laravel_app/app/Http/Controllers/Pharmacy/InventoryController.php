@@ -21,6 +21,8 @@ class InventoryController extends Controller
         $store = $this->resolveStore();
         $search = trim((string) $request->query('q', ''));
         $searchBy = trim((string) $request->query('search_by', 'all'));
+        $filterNearExpiry = (bool) $request->boolean('near_expiry');
+        $filterLowStock = (bool) $request->boolean('low_stock');
 
         $nearExpiryDate = Carbon::now()->addDays($store->near_expiry_days)->toDateString();
 
@@ -57,9 +59,17 @@ class InventoryController extends Controller
             $query->search($search, $searchBy);
         }
 
+        if ($filterNearExpiry) {
+            $query->where('agg.near_expiry_on_hand', '>', 0);
+        }
+
+        if ($filterLowStock) {
+            $query->where('agg.on_hand', '<=', $store->low_stock_threshold);
+        }
+
         $items = $query->paginate(50)->withQueryString();
 
-        return view('pharmacy.inventory.index', compact('store', 'items', 'search', 'searchBy'));
+        return view('pharmacy.inventory.index', compact('store', 'items', 'search', 'searchBy', 'filterNearExpiry', 'filterLowStock'));
     }
 
     public function show(Medicine $medicine)

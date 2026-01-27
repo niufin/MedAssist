@@ -65,6 +65,59 @@ class ReportsController extends Controller
         return view('pharmacy.reports.near_expiry', compact('store', 'batches', 'cutoff'));
     }
 
+    public function inventoryOverview()
+    {
+        $store = $this->resolveStore();
+
+        $manufacturerSql = "COALESCE(NULLIF(manufacturers.name, ''), NULLIF(medicines.manufacturer_raw, ''), '—')";
+        $categorySql = "COALESCE(NULLIF(medicines.therapeutic_class, ''), NULLIF(medicines.type, ''), 'Uncategorized')";
+        $dosageFormSql = "COALESCE(NULLIF(dosage_forms.name, ''), '—')";
+        $manufacturerExpr = DB::raw($manufacturerSql);
+        $categoryExpr = DB::raw($categorySql);
+        $dosageFormExpr = DB::raw($dosageFormSql);
+
+        $base = StockBatch::query()
+            ->join('medicines', 'medicines.id', '=', 'stock_batches.medicine_id')
+            ->leftJoin('manufacturers', 'manufacturers.id', '=', 'medicines.manufacturer_id')
+            ->leftJoin('dosage_forms', 'dosage_forms.id', '=', 'medicines.dosage_form_id')
+            ->where('stock_batches.pharmacy_store_id', $store->id)
+            ->where('stock_batches.quantity_on_hand', '>', 0);
+
+        $byManufacturer = (clone $base)
+            ->selectRaw($manufacturerSql . ' as label')
+            ->selectRaw('COUNT(DISTINCT stock_batches.medicine_id) as medicines')
+            ->selectRaw('SUM(stock_batches.quantity_on_hand) as units')
+            ->groupBy($manufacturerExpr)
+            ->orderByDesc('medicines')
+            ->limit(80)
+            ->get();
+
+        $byCategory = (clone $base)
+            ->selectRaw($categorySql . ' as label')
+            ->selectRaw('COUNT(DISTINCT stock_batches.medicine_id) as medicines')
+            ->selectRaw('SUM(stock_batches.quantity_on_hand) as units')
+            ->groupBy($categoryExpr)
+            ->orderByDesc('medicines')
+            ->limit(80)
+            ->get();
+
+        $byDosageForm = (clone $base)
+            ->selectRaw($dosageFormSql . ' as label')
+            ->selectRaw('COUNT(DISTINCT stock_batches.medicine_id) as medicines')
+            ->selectRaw('SUM(stock_batches.quantity_on_hand) as units')
+            ->groupBy($dosageFormExpr)
+            ->orderByDesc('medicines')
+            ->limit(80)
+            ->get();
+
+        $totals = (clone $base)
+            ->selectRaw('COUNT(DISTINCT stock_batches.medicine_id) as medicines')
+            ->selectRaw('SUM(stock_batches.quantity_on_hand) as units')
+            ->first();
+
+        return view('pharmacy.reports.inventory_overview', compact('store', 'byManufacturer', 'byCategory', 'byDosageForm', 'totals'));
+    }
+
     public function sales()
     {
         $store = $this->resolveStore();

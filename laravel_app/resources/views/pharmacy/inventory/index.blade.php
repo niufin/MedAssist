@@ -49,10 +49,18 @@
                             <option value="manufacturer" {{ ($searchBy ?? 'all') === 'manufacturer' ? 'selected' : '' }}>Manufacturer</option>
                             <option value="class" {{ ($searchBy ?? 'all') === 'class' ? 'selected' : '' }}>Therapeutic class</option>
                         </select>
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" name="near_expiry" value="1" class="rounded border-gray-300" {{ ($filterNearExpiry ?? false) ? 'checked' : '' }}>
+                            About to expire
+                        </label>
+                        <label class="inline-flex items-center gap-2 text-sm text-gray-700">
+                            <input type="checkbox" name="low_stock" value="1" class="rounded border-gray-300" {{ ($filterLowStock ?? false) ? 'checked' : '' }}>
+                            Low stock
+                        </label>
                         <button type="submit" class="bg-gray-900 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded">
                             Search
                         </button>
-                        @if($search !== '')
+                        @if($search !== '' || ($filterNearExpiry ?? false) || ($filterLowStock ?? false))
                             <a href="{{ route('pharmacy.inventory.index') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded text-center">
                                 Clear
                             </a>
@@ -69,6 +77,9 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alerts</th>
+                                    @if(($filterNearExpiry ?? false))
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -124,6 +135,18 @@
                                                 @endif
                                             </div>
                                         </td>
+                                        @if(($filterNearExpiry ?? false))
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center gap-2">
+                                                    <a href="{{ route('pharmacy.inventory.show', $m->id) }}" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-2 rounded-lg text-xs font-bold uppercase transition">
+                                                        Open
+                                                    </a>
+                                                    <a href="{{ route('pharmacy.stock.in', ['medicine_id' => $m->id]) }}" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 px-3 py-2 rounded-lg text-xs font-bold uppercase transition">
+                                                        Stock In
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>

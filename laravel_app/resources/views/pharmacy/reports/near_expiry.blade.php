@@ -22,6 +22,7 @@
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -31,6 +32,16 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ $b->batch_no ?? '—' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ $b->expiry_date ? $b->expiry_date->format('d M Y') : '—' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap font-bold text-gray-900">{{ $b->quantity_on_hand }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <div class="flex items-center gap-2">
+                                                <a href="{{ $b->medicine ? route('pharmacy.inventory.show', $b->medicine->id) : route('pharmacy.inventory.index') }}" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-2 rounded-lg text-xs font-bold uppercase transition">
+                                                    Open
+                                                </a>
+                                                <a href="{{ route('pharmacy.stock.adjust', $b->id) }}" class="bg-gray-100 text-gray-800 hover:bg-gray-200 px-3 py-2 rounded-lg text-xs font-bold uppercase transition">
+                                                    Adjust
+                                                </a>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -45,4 +56,3 @@
         </div>
     </div>
 </x-app-layout>
-

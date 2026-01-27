@@ -191,6 +191,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/reports/stock', [\App\Http\Controllers\Pharmacy\ReportsController::class, 'stock'])->name('reports.stock');
         Route::get('/reports/near-expiry', [\App\Http\Controllers\Pharmacy\ReportsController::class, 'nearExpiry'])->name('reports.near_expiry');
+        Route::get('/reports/inventory-overview', [\App\Http\Controllers\Pharmacy\ReportsController::class, 'inventoryOverview'])->name('reports.inventory_overview');
         Route::get('/reports/sales', [\App\Http\Controllers\Pharmacy\ReportsController::class, 'sales'])->name('reports.sales');
         Route::get('/reports/movements', [\App\Http\Controllers\Pharmacy\ReportsController::class, 'movements'])->name('reports.movements');
         Route::get('/reports/audit', [\App\Http\Controllers\Pharmacy\ReportsController::class, 'audit'])->name('reports.audit');
