@@ -36,6 +36,10 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('lab.dashboard');
         }
 
+        if ($request->user()->isHospitalAdmin()) {
+            return redirect()->intended(route('hospital.dashboard', absolute: false));
+        }
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

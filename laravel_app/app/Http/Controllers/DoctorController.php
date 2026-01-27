@@ -55,6 +55,28 @@ class DoctorController extends Controller
             return false;
         }
 
+        if ($user->isPharmacist()) {
+            if (!Schema::hasColumn('users', 'hospital_admin_id') || empty($user->hospital_admin_id)) {
+                return false;
+            }
+
+            $doctor = $c->doctor;
+            $patient = $c->patient;
+
+            $sameHospital = ($doctor && !empty($doctor->hospital_admin_id) && (int) $doctor->hospital_admin_id === (int) $user->hospital_admin_id)
+                || ($patient && !empty($patient->hospital_admin_id) && (int) $patient->hospital_admin_id === (int) $user->hospital_admin_id);
+
+            if (!$sameHospital) {
+                return false;
+            }
+
+            if (!empty($c->pharmacist_id) && (int) $c->pharmacist_id !== (int) $user->id) {
+                return false;
+            }
+
+            return true;
+        }
+
         if (method_exists($user, 'isPatient') && $user->isPatient()) {
             return $c->patient_id && $c->patient_id === $user->id;
         }
@@ -440,10 +462,19 @@ class DoctorController extends Controller
         $c = Consultation::findOrFail($id);
         $this->authorizeConsultationAccess($c);
 
-        if (!$c->prescription_path || !file_exists($c->prescription_path)) {
-            return redirect()->back()->with('error', 'No saved prescription found.');
+        if ($c->prescription_path && file_exists($c->prescription_path)) {
+            return response()->download($c->prescription_path);
         }
-        return response()->download($c->prescription_path);
+
+        if (!$c->ai_analysis && empty($c->prescription_data)) {
+            return response('No prescription available.', 404)->header('Content-Type', 'text/plain');
+        }
+
+        $pdfDoctor = $c->doctor ?: auth()->user();
+        $pdf = Pdf::loadView('prescription_pdf', ['c' => $c, 'doctor' => $pdfDoctor])->setPaper('A4', 'portrait');
+        $filenameBase = Str::slug($c->patient_name) ?: 'patient';
+
+        return $pdf->download('Prescription_' . $filenameBase . '_' . $c->id . '.pdf');
     }
 
     public function attachPatient(Request $request, $id)
