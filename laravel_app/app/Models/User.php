@@ -26,6 +26,8 @@ class User extends Authenticatable
         'status',
         'medical_center_name',
         'degrees',
+        'designation',
+        'additional_qualifications',
         'license_number',
         'contact_number',
         'hospital_admin_id',

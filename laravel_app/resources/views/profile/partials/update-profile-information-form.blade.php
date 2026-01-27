@@ -61,6 +61,18 @@
             </div>
 
             <div>
+                <x-input-label for="designation" :value="__('Designation')" />
+                <x-text-input id="designation" name="designation" type="text" class="mt-1 block w-full" :value="old('designation', $user->designation)" />
+                <x-input-error class="mt-2" :messages="$errors->get('designation')" />
+            </div>
+
+            <div>
+                <x-input-label for="additional_qualifications" :value="__('Additional Courses / Diplomas')" />
+                <x-text-input id="additional_qualifications" name="additional_qualifications" type="text" class="mt-1 block w-full" :value="old('additional_qualifications', $user->additional_qualifications)" />
+                <x-input-error class="mt-2" :messages="$errors->get('additional_qualifications')" />
+            </div>
+
+            <div>
                 <x-input-label for="license_number" :value="__('License Number / Reg No')" />
                 <x-text-input id="license_number" name="license_number" type="text" class="mt-1 block w-full" :value="old('license_number', $user->license_number)" />
                 <x-input-error class="mt-2" :messages="$errors->get('license_number')" />

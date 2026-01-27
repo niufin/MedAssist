@@ -6,9 +6,14 @@
         @page { margin: 15px; }
         body { font-family: 'Helvetica', sans-serif; padding: 0; color: #2d3748; background-color: #fff; line-height: 1.3; font-size: 12px; }
         
-        .header { text-align: center; border-bottom: 2px solid #3182ce; padding: 10px; margin-bottom: 10px; background-color: #f7fafc; }
-        .clinic-name { font-size: 22px; font-weight: 800; color: #2c5282; text-transform: uppercase; letter-spacing: 1px; }
-        .doctor-name { font-size: 12px; color: #4a5568; margin-top: 3px; font-weight: 500; }
+        .header { border-bottom: 2px solid #3182ce; padding: 12px 12px 10px; margin-bottom: 10px; background-color: #f7fafc; }
+        .header-grid { width: 100%; border-collapse: collapse; }
+        .header-left { vertical-align: top; }
+        .header-right { vertical-align: top; text-align: right; }
+        .clinic-name { font-size: 22px; font-weight: 800; color: #2c5282; text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; }
+        .clinic-sub { font-size: 10px; color: #718096; margin-top: 2px; font-weight: 600; }
+        .doctor-name { font-size: 12px; color: #2d3748; margin-top: 3px; font-weight: 700; }
+        .doctor-meta { font-size: 10px; color: #4a5568; margin-top: 2px; font-weight: 600; }
         
         .container { padding: 0 15px; }
 
@@ -55,14 +60,50 @@
 </head>
 <body>
 
+    @php
+        $hospital = $doctor?->hospitalAdmin;
+        $hospitalName = $hospital?->name ?: ($doctor->medical_center_name ?? null);
+        $clinicTitle = $hospitalName ?: config('clinic.clinic_name', 'MEDASSIST MEDICAL CENTER');
+
+        $doctorLine = trim((string) ($doctor->name ?? ''));
+        $degrees = trim((string) ($doctor->degrees ?? ''));
+        if ($degrees !== '') {
+            $doctorLine .= ' (' . $degrees . ')';
+        }
+
+        $designation = trim((string) ($doctor->designation ?? ''));
+        $additional = trim((string) ($doctor->additional_qualifications ?? ''));
+        $license = trim((string) ($doctor->license_number ?? ''));
+        $contact = trim((string) ($doctor->contact_number ?? ''));
+    @endphp
+
     <div class="header">
-        <div class="clinic-name">{{ $doctor->medical_center_name ?? config('clinic.clinic_name', 'DR. AI MEDICAL CENTER') }}</div>
-        <div class="doctor-name">{{ $doctor->name }} @if($doctor->degrees) ({{ $doctor->degrees }}) @endif</div>
-        <div class="doctor-name">
-            @if($doctor->license_number) Reg: {{ $doctor->license_number }} @endif
-            @if($doctor->contact_number) @if($doctor->license_number) | @endif Ph: {{ $doctor->contact_number }} @endif
-        </div>
-        @if(config('clinic.address'))<div class="doctor-name">{{ config('clinic.address') }}</div>@endif
+        <table class="header-grid">
+            <tr>
+                <td class="header-left">
+                    <div class="clinic-name">{{ $clinicTitle }}</div>
+                    @if($hospital && $doctor->medical_center_name)
+                        <div class="clinic-sub">{{ $doctor->medical_center_name }}</div>
+                    @endif
+                    @if(config('clinic.address'))
+                        <div class="clinic-sub">{{ config('clinic.address') }}</div>
+                    @endif
+                </td>
+                <td class="header-right">
+                    <div class="doctor-name">{{ $doctorLine !== '' ? $doctorLine : '—' }}</div>
+                    @if($designation !== '')
+                        <div class="doctor-meta">{{ $designation }}</div>
+                    @endif
+                    @if($additional !== '')
+                        <div class="doctor-meta">{{ $additional }}</div>
+                    @endif
+                    <div class="doctor-meta">
+                        @if($license !== '') Reg: {{ $license }} @endif
+                        @if($contact !== '') @if($license !== '') | @endif Ph: {{ $contact }} @endif
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div class="container">

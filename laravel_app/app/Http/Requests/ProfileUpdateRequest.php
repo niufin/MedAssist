@@ -27,6 +27,8 @@ class ProfileUpdateRequest extends FormRequest
             ],
             'medical_center_name' => ['nullable', 'string', 'max:255'],
             'degrees' => ['nullable', 'string'],
+            'designation' => ['nullable', 'string', 'max:255'],
+            'additional_qualifications' => ['nullable', 'string', 'max:255'],
             'license_number' => ['nullable', 'string', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:255'],
         ];

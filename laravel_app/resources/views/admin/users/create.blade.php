@@ -64,6 +64,14 @@
                                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="degrees" type="text" name="degrees">
                             </div>
                             <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="designation">Designation</label>
+                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="designation" type="text" name="designation">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="additional_qualifications">Additional Courses / Diplomas</label>
+                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="additional_qualifications" type="text" name="additional_qualifications">
+                            </div>
+                            <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2" for="license_number">License Number</label>
                                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="license_number" type="text" name="license_number">
                             </div>

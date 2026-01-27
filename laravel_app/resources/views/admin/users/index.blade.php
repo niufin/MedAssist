@@ -63,6 +63,8 @@
                                         <div class="text-xs text-gray-700 space-y-1">
                                             @if($user->role === 'doctor')
                                                 <div><span class="font-semibold text-gray-900">Degrees:</span> {{ $user->degrees ?? '—' }}</div>
+                                                <div><span class="font-semibold text-gray-900">Designation:</span> {{ $user->designation ?? '—' }}</div>
+                                                <div><span class="font-semibold text-gray-900">Additional:</span> {{ $user->additional_qualifications ?? '—' }}</div>
                                                 <div><span class="font-semibold text-gray-900">License:</span> {{ $user->license_number ?? '—' }}</div>
                                                 <div><span class="font-semibold text-gray-900">Mobile:</span> {{ $user->contact_number ?? '—' }}</div>
                                             @elseif($user->role === 'patient')
