@@ -16,11 +16,11 @@
             @if(is_array($summary))
                 @php
                     $cards = [
-                        ['label' => 'Doctors', 'value' => (int) ($summary['doctors'] ?? 0), 'icon' => 'fa-user-doctor', 'ring' => 'ring-blue-200', 'bg' => 'bg-blue-50', 'fg' => 'text-blue-700'],
-                        ['label' => 'Patients', 'value' => (int) ($summary['patients'] ?? 0), 'icon' => 'fa-hospital-user', 'ring' => 'ring-emerald-200', 'bg' => 'bg-emerald-50', 'fg' => 'text-emerald-700'],
-                        ['label' => 'Pharmacists', 'value' => (int) ($summary['pharmacists'] ?? 0), 'icon' => 'fa-prescription-bottle-medical', 'ring' => 'ring-indigo-200', 'bg' => 'bg-indigo-50', 'fg' => 'text-indigo-700'],
-                        ['label' => 'Lab Staff', 'value' => (int) ($summary['lab_assistants'] ?? 0), 'icon' => 'fa-microscope', 'ring' => 'ring-fuchsia-200', 'bg' => 'bg-fuchsia-50', 'fg' => 'text-fuchsia-700'],
-                        ['label' => 'Consultations', 'value' => (int) ($summary['consultations'] ?? 0), 'icon' => 'fa-clipboard-list', 'ring' => 'ring-slate-200', 'bg' => 'bg-slate-50', 'fg' => 'text-slate-700'],
+                        ['label' => 'Doctors', 'value' => (int) ($summary['doctors'] ?? 0), 'icon' => 'fa-user-doctor', 'ring' => 'ring-blue-200', 'bg' => 'bg-blue-50', 'fg' => 'text-blue-700', 'href' => route('admin.users.index', ['role' => 'doctor'])],
+                        ['label' => 'Patients', 'value' => (int) ($summary['patients'] ?? 0), 'icon' => 'fa-hospital-user', 'ring' => 'ring-emerald-200', 'bg' => 'bg-emerald-50', 'fg' => 'text-emerald-700', 'href' => route('admin.users.index', ['role' => 'patient'])],
+                        ['label' => 'Pharmacists', 'value' => (int) ($summary['pharmacists'] ?? 0), 'icon' => 'fa-prescription-bottle-medical', 'ring' => 'ring-indigo-200', 'bg' => 'bg-indigo-50', 'fg' => 'text-indigo-700', 'href' => route('admin.users.index', ['role' => 'pharmacist'])],
+                        ['label' => 'Lab Staff', 'value' => (int) ($summary['lab_assistants'] ?? 0), 'icon' => 'fa-microscope', 'ring' => 'ring-fuchsia-200', 'bg' => 'bg-fuchsia-50', 'fg' => 'text-fuchsia-700', 'href' => route('admin.users.index', ['role' => 'lab_assistant'])],
+                        ['label' => 'Consultations', 'value' => (int) ($summary['consultations'] ?? 0), 'icon' => 'fa-clipboard-list', 'ring' => 'ring-slate-200', 'bg' => 'bg-slate-50', 'fg' => 'text-slate-700', 'href' => route('dashboard')],
                     ];
                 @endphp
 
@@ -28,7 +28,7 @@
                     <div class="p-4 sm:p-6">
                         <div class="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:gap-4">
                             @foreach($cards as $card)
-                                <div class="flex-1 min-w-[220px] rounded-xl border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-4 shadow-sm hover:shadow-md transition">
+                                <a href="{{ $card['href'] }}" class="flex-1 min-w-[220px] rounded-xl border border-gray-100 bg-gradient-to-br from-white to-gray-50 p-4 shadow-sm hover:shadow-md transition block">
                                     <div class="flex items-center justify-between">
                                         <div class="min-w-0">
                                             <div class="text-xs font-extrabold uppercase tracking-wide text-gray-500 truncate">{{ $card['label'] }}</div>
@@ -41,7 +41,7 @@
                                     <div class="mt-3 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
                                         <div class="h-full {{ $card['bg'] }} w-2/3"></div>
                                     </div>
-                                </div>
+                                </a>
                             @endforeach
                         </div>
                     </div>

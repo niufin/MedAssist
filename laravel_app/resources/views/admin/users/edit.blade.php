@@ -40,6 +40,25 @@
                             </select>
                         </div>
 
+                        <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="contact_number">Mobile Number</label>
+                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="contact_number" type="text" name="contact_number" value="{{ old('contact_number', $user->contact_number) }}">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="medical_center_name">Medical Center</label>
+                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="medical_center_name" type="text" name="medical_center_name" value="{{ old('medical_center_name', $user->medical_center_name) }}">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="degrees">Degrees / Qualification</label>
+                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="degrees" type="text" name="degrees" value="{{ old('degrees', $user->degrees) }}">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="license_number">License Number</label>
+                                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="license_number" type="text" name="license_number" value="{{ old('license_number', $user->license_number) }}">
+                            </div>
+                        </div>
+
                         @if(auth()->user()->isAdmin() || auth()->user()->isSuperAdmin())
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="hospital_admin_id">Assign to Hospital Admin</label>

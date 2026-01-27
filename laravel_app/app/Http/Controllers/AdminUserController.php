@@ -9,22 +9,41 @@ use Illuminate\Support\Facades\Gate;
 
 class AdminUserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $current = auth()->user();
+        $role = strtolower(trim((string) $request->query('role', '')));
+        $q = trim((string) $request->query('q', ''));
+
+        $usersQuery = User::query();
         if ($current && $current->isHospitalAdmin()) {
-            $users = User::where('hospital_admin_id', $current->id)->get();
-        } else {
-            $users = User::all();
+            $usersQuery->where('hospital_admin_id', $current->id);
         }
+
+        if ($role !== '') {
+            $usersQuery->where('role', $role);
+        }
+
+        if ($q !== '') {
+            $usersQuery->where(function ($w) use ($q) {
+                $w->where('name', 'like', '%' . $q . '%')
+                    ->orWhere('email', 'like', '%' . $q . '%')
+                    ->orWhere('contact_number', 'like', '%' . $q . '%')
+                    ->orWhere('mrn', 'like', '%' . $q . '%')
+                    ->orWhere('license_number', 'like', '%' . $q . '%');
+            });
+        }
+
+        $users = $usersQuery->orderByDesc('id')->paginate(50)->withQueryString();
         $hospitalAdmins = User::where('role', User::ROLE_HOSPITAL_ADMIN)->get();
-        return view('admin.users.index', compact('users', 'hospitalAdmins'));
+        return view('admin.users.index', compact('users', 'hospitalAdmins', 'role', 'q'));
     }
 
     public function create()
     {
         $hospitalAdmins = User::where('role', User::ROLE_HOSPITAL_ADMIN)->get();
-        return view('admin.users.create', compact('hospitalAdmins'));
+        $role = strtolower(trim((string) request()->query('role', '')));
+        return view('admin.users.create', compact('hospitalAdmins', 'role'));
     }
 
     public function store(Request $request)
@@ -35,6 +54,10 @@ class AdminUserController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|string',
             'hospital_admin_id' => 'nullable|integer',
+            'degrees' => 'nullable|string|max:255',
+            'license_number' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
+            'medical_center_name' => 'nullable|string|max:255',
         ]);
 
         $current = auth()->user();
@@ -51,6 +74,10 @@ class AdminUserController extends Controller
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
             'status' => User::STATUS_ACTIVE,
+            'degrees' => $validated['degrees'] ?? null,
+            'license_number' => $validated['license_number'] ?? null,
+            'contact_number' => $validated['contact_number'] ?? null,
+            'medical_center_name' => $validated['medical_center_name'] ?? null,
         ];
 
         if ($current && $current->isHospitalAdmin()) {
@@ -110,6 +137,10 @@ class AdminUserController extends Controller
             'role' => 'required|string',
             'status' => 'required|string',
             'hospital_admin_id' => 'nullable|integer',
+            'degrees' => 'nullable|string|max:255',
+            'license_number' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:255',
+            'medical_center_name' => 'nullable|string|max:255',
         ]);
 
         if (auth()->user()->isHospitalAdmin()) {
