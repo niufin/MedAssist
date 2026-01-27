@@ -6,9 +6,21 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Schema;
 
 class AdminUserController extends Controller
 {
+    private function stripUnavailableUserColumns(array $payload): array
+    {
+        if (!Schema::hasColumn('users', 'designation')) {
+            unset($payload['designation']);
+        }
+        if (!Schema::hasColumn('users', 'additional_qualifications')) {
+            unset($payload['additional_qualifications']);
+        }
+        return $payload;
+    }
+
     public function index(Request $request)
     {
         $current = auth()->user();
@@ -108,6 +120,7 @@ class AdminUserController extends Controller
             $data['mrn'] = $mrn;
         }
 
+        $data = $this->stripUnavailableUserColumns($data);
         User::create($data);
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
@@ -177,6 +190,7 @@ class AdminUserController extends Controller
             }
         }
 
+        $payload = $this->stripUnavailableUserColumns($payload);
         $user->update($payload);
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
