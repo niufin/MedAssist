@@ -29,26 +29,20 @@ class ProfileController extends Controller
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $skipped = [];
         if (!Schema::hasColumn('users', 'designation')) {
             unset($validated['designation']);
         }
         if (!Schema::hasColumn('users', 'additional_qualifications')) {
             unset($validated['additional_qualifications']);
         }
-        if (!Schema::hasColumn('users', 'clinic_address')) {
-            unset($validated['clinic_address']);
-        }
-        if (!Schema::hasColumn('users', 'clinic_contact_number')) {
-            unset($validated['clinic_contact_number']);
-        }
-        if (!Schema::hasColumn('users', 'clinic_email')) {
-            unset($validated['clinic_email']);
-        }
-        if (!Schema::hasColumn('users', 'clinic_registration_number')) {
-            unset($validated['clinic_registration_number']);
-        }
-        if (!Schema::hasColumn('users', 'clinic_gstin')) {
-            unset($validated['clinic_gstin']);
+        foreach (['clinic_address', 'clinic_contact_number', 'clinic_email', 'clinic_registration_number', 'clinic_gstin'] as $field) {
+            if (!Schema::hasColumn('users', $field)) {
+                if (array_key_exists($field, $validated) && $validated[$field] !== null && $validated[$field] !== '') {
+                    $skipped[] = $field;
+                }
+                unset($validated[$field]);
+            }
         }
 
         $request->user()->fill($validated);
@@ -58,6 +52,10 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
+
+        if (!empty($skipped)) {
+            return Redirect::route('profile.edit')->with('error', 'Clinic profile details were not saved because the database is missing required columns. Run: php artisan migrate --force');
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
