@@ -1,0 +1,171 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Gate;
+
+class AdminUserController extends Controller
+{
+    public function index()
+    {
+        $current = auth()->user();
+        if ($current && $current->isHospitalAdmin()) {
+            $users = User::where('hospital_admin_id', $current->id)->get();
+        } else {
+            $users = User::all();
+        }
+        $hospitalAdmins = User::where('role', User::ROLE_HOSPITAL_ADMIN)->get();
+        return view('admin.users.index', compact('users', 'hospitalAdmins'));
+    }
+
+    public function create()
+    {
+        $hospitalAdmins = User::where('role', User::ROLE_HOSPITAL_ADMIN)->get();
+        return view('admin.users.create', compact('hospitalAdmins'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|string',
+            'hospital_admin_id' => 'nullable|integer',
+        ]);
+
+        $current = auth()->user();
+
+        if ($current && $current->isHospitalAdmin()) {
+            if (!in_array($validated['role'], [User::ROLE_DOCTOR, User::ROLE_PHARMACIST, User::ROLE_LAB_ASSISTANT, User::ROLE_PATIENT], true)) {
+                return redirect()->route('admin.users.index')->with('error', 'Hospital Admins can only create Doctors, Pharmacists, Lab Assistants, and Patients.');
+            }
+        }
+
+        $data = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $validated['role'],
+            'status' => User::STATUS_ACTIVE,
+        ];
+
+        if ($current && $current->isHospitalAdmin()) {
+            $data['hospital_admin_id'] = $current->id;
+        } else {
+            if (!empty($validated['hospital_admin_id'])) {
+                $ha = User::find($validated['hospital_admin_id']);
+                if (!$ha || !$ha->isHospitalAdmin()) {
+                    return back()->with('error', 'Selected Hospital Admin is invalid.');
+                }
+                if (!in_array($validated['role'], [User::ROLE_DOCTOR, User::ROLE_PHARMACIST, User::ROLE_LAB_ASSISTANT, User::ROLE_PATIENT], true)) {
+                    $data['hospital_admin_id'] = null;
+                } else {
+                    $data['hospital_admin_id'] = $ha->id;
+                }
+            }
+        }
+
+        if ($validated['role'] === User::ROLE_PATIENT) {
+            $mrn = null;
+            do {
+                $mrn = str_pad(mt_rand(1, 9999999999), 10, '0', STR_PAD_LEFT);
+            } while (User::where('mrn', $mrn)->exists());
+            $data['mrn'] = $mrn;
+        }
+
+        User::create($data);
+
+        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+    }
+
+    public function edit(User $user)
+    {
+        if ($user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
+            return redirect()->route('admin.users.index')->with('error', 'You cannot edit a Super Admin.');
+        }
+        if (auth()->user()->isHospitalAdmin() && $user->hospital_admin_id !== auth()->id()) {
+            return redirect()->route('admin.users.index')->with('error', 'You cannot edit users from another hospital.');
+        }
+        $hospitalAdmins = User::where('role', User::ROLE_HOSPITAL_ADMIN)->get();
+        return view('admin.users.edit', compact('user', 'hospitalAdmins'));
+    }
+
+    public function update(Request $request, User $user)
+    {
+        if ($user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
+            return back()->with('error', 'You cannot edit a Super Admin.');
+        }
+
+        if (auth()->user()->isHospitalAdmin() && $user->hospital_admin_id !== auth()->id()) {
+            return back()->with('error', 'You cannot edit users from another hospital.');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'role' => 'required|string',
+            'status' => 'required|string',
+            'hospital_admin_id' => 'nullable|integer',
+        ]);
+
+        if (auth()->user()->isHospitalAdmin()) {
+            if (!in_array($validated['role'], [User::ROLE_DOCTOR, User::ROLE_PHARMACIST, User::ROLE_LAB_ASSISTANT, User::ROLE_PATIENT], true)) {
+                return back()->with('error', 'Hospital Admins can only assign Doctor, Pharmacist, Lab Assistant, or Patient roles.');
+            }
+        }
+
+        $payload = $validated;
+        if (auth()->user()->isHospitalAdmin()) {
+            $payload['hospital_admin_id'] = auth()->id();
+        } else {
+            if (array_key_exists('hospital_admin_id', $validated)) {
+                $val = $validated['hospital_admin_id'];
+                if ($val) {
+                    $ha = User::find($val);
+                    if (!$ha || !$ha->isHospitalAdmin()) {
+                        return back()->with('error', 'Selected Hospital Admin is invalid.');
+                    }
+                    if (!in_array($validated['role'], [User::ROLE_DOCTOR, User::ROLE_PHARMACIST, User::ROLE_LAB_ASSISTANT, User::ROLE_PATIENT], true)) {
+                        $payload['hospital_admin_id'] = null;
+                    } else {
+                        $payload['hospital_admin_id'] = $ha->id;
+                    }
+                } else {
+                    $payload['hospital_admin_id'] = null;
+                }
+            }
+        }
+
+        $user->update($payload);
+
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
+    }
+
+    public function approve(User $user)
+    {
+        if ($user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
+            return back()->with('error', 'You cannot edit a Super Admin.');
+        }
+
+        $user->update(['status' => User::STATUS_ACTIVE]);
+        return back()->with('success', 'User approved.');
+    }
+
+    public function destroy(User $user)
+    {
+        if ($user->isSuperAdmin()) {
+            return back()->with('error', 'You cannot delete a Super Admin.');
+        }
+
+        if (auth()->user()->isHospitalAdmin() && $user->hospital_admin_id !== auth()->id()) {
+            return back()->with('error', 'You cannot delete users from another hospital.');
+        }
+
+        $user->delete();
+        return back()->with('success', 'User deleted successfully.');
+    }
+}

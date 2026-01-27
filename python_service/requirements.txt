@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+openai
+pdfplumber
+pytesseract
+Pillow
+langchain-community
+sentence-transformers
+chromadb
+faiss-cpu
+python-dotenv

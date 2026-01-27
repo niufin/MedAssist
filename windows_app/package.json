@@ -1,0 +1,31 @@
+{
+  "name": "niufin-doctor",
+  "productName": "Niufin Doctor",
+  "version": "1.2.0",
+  "description": "Niufin Doctor Desktop Application",
+  "main": "main.js",
+  "author": "Niufin",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "in.niufin.doctor",
+    "win": {
+      "target": "dir",
+      "icon": "icon.png"
+    },
+    "msi": {
+      "oneClick": true,
+      "perMachine": true
+    },
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^26.4.0",
+    "electron-packager": "^17.1.2"
+  }
+}

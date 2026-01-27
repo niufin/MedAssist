@@ -1,0 +1,83 @@
+# Android
+android_app/local.properties
+android_app/keystore.properties
+android_app/app/release-key.jks
+android_app/.build/
+android_app/.gradle/
+android_app/build/
+android_app/app/build/
+android_app/app/release/
+android_app/.idea/
+android_app/*.iml
+android_app/captures/
+.gradle/
+build/
+
+# Laravel
+laravel_app/vendor/
+laravel_app/node_modules/
+laravel_app/public/build/
+laravel_app/public/hot/
+laravel_app/public/storage
+laravel_app/public/downloads/
+laravel_app/storage/*.key
+laravel_app/.env
+laravel_app/.env.backup
+laravel_app/.env.production
+laravel_app/.phpunit.result.cache
+laravel_app/Homestead.json
+laravel_app/Homestead.yaml
+laravel_app/npm-debug.log
+laravel_app/yarn-error.log
+laravel_app/auth.json
+laravel_app/.phpunit.cache
+
+# Python
+python_service/venv/
+python_service/__pycache__/
+python_service/.cache/
+python_service/.env
+python_service/*.pyc
+python_service/chroma_db/
+python_service/faiss_db/
+python_service/pdfs/
+python_service/data/
+python_service/logs/
+python_service/service_log.txt
+python_service/service_error.txt
+python_service/service_log-*.txt
+
+# Root
+vendor/
+node_modules/
+.idea/
+.vscode/
+.trae/
+.trae/documents/
+*.log
+.DS_Store
+Thumbs.db
+
+# Generated datasets / exports
+laravel_app/storage/catalog/
+indian_pharmaceutical_products_clean.csv
+
+# Windows desktop build artifacts
+windows_app/dist/
+wpf_app/NiufinDoctorWPF/bin/
+wpf_app/NiufinDoctorWPF/obj/
+
+# Windows installers and packages
+NiufinDoctor-Setup-*.zip
+NiufinDoctor-Setup*.msi
+NiufinDoctor-Setup*.wixpdb
+NiufinDoctorWPF-*.zip
+MedAssist_*.msi
+MedAssist_*.wixpdb
+
+# Local tooling and runtime artifacts
+.dotnet/
+native_windows_app/venv/
+native_windows_app/dist/
+android_app/app-release.apk
+laravel_app/database/*.sqlite

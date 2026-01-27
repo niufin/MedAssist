@@ -1,0 +1,24 @@
+name: Guard Against .trae Files
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Fail if .trae is tracked
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files .trae | grep -q .; then
+            echo ".trae files are tracked in git. Remove them and ensure .gitignore blocks them."
+            git ls-files .trae
+            exit 1
+          fi
+

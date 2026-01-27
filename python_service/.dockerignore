@@ -1,0 +1,11 @@
+__pycache__
+logs/
+*.pyc
+.env
+pdfs/
+data/
+faiss_db/
+chroma_db/
+.cache/
+service_log*.txt
+service_error*.txt
