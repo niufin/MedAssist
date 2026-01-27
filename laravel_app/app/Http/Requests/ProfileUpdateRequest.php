@@ -31,6 +31,11 @@ class ProfileUpdateRequest extends FormRequest
             'additional_qualifications' => ['nullable', 'string', 'max:255'],
             'license_number' => ['nullable', 'string', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:255'],
+            'clinic_address' => ['nullable', 'string', 'max:500'],
+            'clinic_contact_number' => ['nullable', 'string', 'max:50'],
+            'clinic_email' => ['nullable', 'string', 'email', 'max:255'],
+            'clinic_registration_number' => ['nullable', 'string', 'max:255'],
+            'clinic_gstin' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

@@ -64,6 +64,11 @@
         $hospital = $doctor?->hospitalAdmin;
         $hospitalName = $hospital?->name ?: ($doctor->medical_center_name ?? null);
         $clinicTitle = $hospitalName ?: config('clinic.clinic_name', 'MEDASSIST MEDICAL CENTER');
+        $clinicAddress = trim((string) ($hospital?->clinic_address ?? '')) !== '' ? $hospital->clinic_address : (config('clinic.address') ?: null);
+        $clinicPhone = trim((string) ($hospital?->clinic_contact_number ?? '')) !== '' ? $hospital->clinic_contact_number : ($hospital?->contact_number ?: null);
+        $clinicEmail = $hospital?->clinic_email ?: null;
+        $clinicReg = $hospital?->clinic_registration_number ?: null;
+        $clinicGstin = $hospital?->clinic_gstin ?: null;
 
         $doctorLine = trim((string) ($doctor->name ?? ''));
         $degrees = trim((string) ($doctor->degrees ?? ''));
@@ -85,8 +90,20 @@
                     @if($hospital && $doctor->medical_center_name)
                         <div class="clinic-sub">{{ $doctor->medical_center_name }}</div>
                     @endif
-                    @if(config('clinic.address'))
-                        <div class="clinic-sub">{{ config('clinic.address') }}</div>
+                    @if($clinicAddress)
+                        <div class="clinic-sub">{{ $clinicAddress }}</div>
+                    @endif
+                    @if($clinicPhone || $clinicEmail)
+                        <div class="clinic-sub">
+                            @if($clinicPhone) Ph: {{ $clinicPhone }} @endif
+                            @if($clinicEmail) @if($clinicPhone) | @endif {{ $clinicEmail }} @endif
+                        </div>
+                    @endif
+                    @if($clinicReg || $clinicGstin)
+                        <div class="clinic-sub">
+                            @if($clinicReg) Reg: {{ $clinicReg }} @endif
+                            @if($clinicGstin) @if($clinicReg) | @endif GSTIN: {{ $clinicGstin }} @endif
+                        </div>
                     @endif
                 </td>
                 <td class="header-right">

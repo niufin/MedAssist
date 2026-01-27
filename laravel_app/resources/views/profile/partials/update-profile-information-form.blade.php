@@ -18,7 +18,7 @@
         @method('patch')
 
         <div>
-            <x-input-label for="name" :value="__('Name')" />
+            <x-input-label for="name" :value="$user->isHospitalAdmin() ? __('Hospital / Clinic Name') : __('Name')" />
             <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
             <x-input-error class="mt-2" :messages="$errors->get('name')" />
         </div>
@@ -82,6 +82,38 @@
                 <x-input-label for="contact_number" :value="__('Contact Number')" />
                 <x-text-input id="contact_number" name="contact_number" type="text" class="mt-1 block w-full" :value="old('contact_number', $user->contact_number)" />
                 <x-input-error class="mt-2" :messages="$errors->get('contact_number')" />
+            </div>
+        @endif
+
+        @if($user->isHospitalAdmin())
+            <div>
+                <x-input-label for="clinic_address" :value="__('Clinic Address')" />
+                <x-text-input id="clinic_address" name="clinic_address" type="text" class="mt-1 block w-full" :value="old('clinic_address', $user->clinic_address)" />
+                <x-input-error class="mt-2" :messages="$errors->get('clinic_address')" />
+            </div>
+
+            <div>
+                <x-input-label for="clinic_contact_number" :value="__('Clinic Contact Number')" />
+                <x-text-input id="clinic_contact_number" name="clinic_contact_number" type="text" class="mt-1 block w-full" :value="old('clinic_contact_number', $user->clinic_contact_number)" />
+                <x-input-error class="mt-2" :messages="$errors->get('clinic_contact_number')" />
+            </div>
+
+            <div>
+                <x-input-label for="clinic_email" :value="__('Clinic Email ID')" />
+                <x-text-input id="clinic_email" name="clinic_email" type="email" class="mt-1 block w-full" :value="old('clinic_email', $user->clinic_email)" />
+                <x-input-error class="mt-2" :messages="$errors->get('clinic_email')" />
+            </div>
+
+            <div>
+                <x-input-label for="clinic_registration_number" :value="__('Clinic Certificate / Registration Number')" />
+                <x-text-input id="clinic_registration_number" name="clinic_registration_number" type="text" class="mt-1 block w-full" :value="old('clinic_registration_number', $user->clinic_registration_number)" />
+                <x-input-error class="mt-2" :messages="$errors->get('clinic_registration_number')" />
+            </div>
+
+            <div>
+                <x-input-label for="clinic_gstin" :value="__('Clinic GSTIN')" />
+                <x-text-input id="clinic_gstin" name="clinic_gstin" type="text" class="mt-1 block w-full" :value="old('clinic_gstin', $user->clinic_gstin)" />
+                <x-input-error class="mt-2" :messages="$errors->get('clinic_gstin')" />
             </div>
         @endif
 

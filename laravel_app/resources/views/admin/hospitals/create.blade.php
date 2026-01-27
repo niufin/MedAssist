@@ -31,6 +31,36 @@
                         </div>
 
                         <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Clinic Address</label>
+                            <input type="text" name="clinic_address" value="{{ old('clinic_address') }}" class="w-full border-gray-300 rounded">
+                            @error('clinic_address')<div class="text-sm text-red-600 mt-1">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Clinic Contact Number</label>
+                            <input type="text" name="clinic_contact_number" value="{{ old('clinic_contact_number') }}" class="w-full border-gray-300 rounded">
+                            @error('clinic_contact_number')<div class="text-sm text-red-600 mt-1">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Clinic Email</label>
+                            <input type="email" name="clinic_email" value="{{ old('clinic_email') }}" class="w-full border-gray-300 rounded">
+                            @error('clinic_email')<div class="text-sm text-red-600 mt-1">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Clinic Certificate / Registration Number</label>
+                            <input type="text" name="clinic_registration_number" value="{{ old('clinic_registration_number') }}" class="w-full border-gray-300 rounded">
+                            @error('clinic_registration_number')<div class="text-sm text-red-600 mt-1">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Clinic GSTIN</label>
+                            <input type="text" name="clinic_gstin" value="{{ old('clinic_gstin') }}" class="w-full border-gray-300 rounded">
+                            @error('clinic_gstin')<div class="text-sm text-red-600 mt-1">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
                             <input type="password" name="password" class="w-full border-gray-300 rounded" required>
                             @error('password')<div class="text-sm text-red-600 mt-1">{{ $message }}</div>@enderror
@@ -55,4 +85,3 @@
         </div>
     </div>
 </x-app-layout>
-

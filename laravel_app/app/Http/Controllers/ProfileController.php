@@ -35,6 +35,21 @@ class ProfileController extends Controller
         if (!Schema::hasColumn('users', 'additional_qualifications')) {
             unset($validated['additional_qualifications']);
         }
+        if (!Schema::hasColumn('users', 'clinic_address')) {
+            unset($validated['clinic_address']);
+        }
+        if (!Schema::hasColumn('users', 'clinic_contact_number')) {
+            unset($validated['clinic_contact_number']);
+        }
+        if (!Schema::hasColumn('users', 'clinic_email')) {
+            unset($validated['clinic_email']);
+        }
+        if (!Schema::hasColumn('users', 'clinic_registration_number')) {
+            unset($validated['clinic_registration_number']);
+        }
+        if (!Schema::hasColumn('users', 'clinic_gstin')) {
+            unset($validated['clinic_gstin']);
+        }
 
         $request->user()->fill($validated);
 

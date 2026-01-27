@@ -31,6 +31,11 @@ class HospitalController extends Controller
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'contact_number' => 'nullable|string|max:50',
+            'clinic_address' => 'nullable|string|max:500',
+            'clinic_contact_number' => 'nullable|string|max:50',
+            'clinic_email' => 'nullable|string|email|max:255',
+            'clinic_registration_number' => 'nullable|string|max:255',
+            'clinic_gstin' => 'nullable|string|max:255',
         ]);
 
         User::create([
@@ -40,6 +45,11 @@ class HospitalController extends Controller
             'role' => User::ROLE_HOSPITAL_ADMIN,
             'status' => User::STATUS_ACTIVE,
             'contact_number' => $validated['contact_number'] ?? null,
+            'clinic_address' => $validated['clinic_address'] ?? null,
+            'clinic_contact_number' => $validated['clinic_contact_number'] ?? null,
+            'clinic_email' => $validated['clinic_email'] ?? null,
+            'clinic_registration_number' => $validated['clinic_registration_number'] ?? null,
+            'clinic_gstin' => $validated['clinic_gstin'] ?? null,
         ]);
 
         return redirect()->route('admin.hospitals.index')->with('success', 'Hospital created successfully.');
@@ -66,6 +76,11 @@ class HospitalController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'status' => 'required|string',
             'contact_number' => 'nullable|string|max:50',
+            'clinic_address' => 'nullable|string|max:500',
+            'clinic_contact_number' => 'nullable|string|max:50',
+            'clinic_email' => 'nullable|string|email|max:255',
+            'clinic_registration_number' => 'nullable|string|max:255',
+            'clinic_gstin' => 'nullable|string|max:255',
         ]);
 
         $payload = [
@@ -73,6 +88,11 @@ class HospitalController extends Controller
             'email' => $validated['email'],
             'status' => $validated['status'],
             'contact_number' => $validated['contact_number'] ?? null,
+            'clinic_address' => $validated['clinic_address'] ?? null,
+            'clinic_contact_number' => $validated['clinic_contact_number'] ?? null,
+            'clinic_email' => $validated['clinic_email'] ?? null,
+            'clinic_registration_number' => $validated['clinic_registration_number'] ?? null,
+            'clinic_gstin' => $validated['clinic_gstin'] ?? null,
         ];
 
         if (!empty($validated['password'])) {
@@ -95,4 +115,3 @@ class HospitalController extends Controller
         return redirect()->route('admin.hospitals.index')->with('success', 'Hospital deleted successfully.');
     }
 }
-
