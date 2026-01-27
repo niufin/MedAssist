@@ -15,7 +15,7 @@ trait ResolvesPharmacyStore
 
         if ($user->isHospitalAdmin()) {
             $hospitalId = $user->id;
-        } elseif ($user->isSuperAdmin()) {
+        } elseif ($user->isSuperAdmin() || $user->isAdmin()) {
             $requested = request()->integer('hospital_admin_id') ?: null;
             $fromSession = session('active_hospital_admin_id');
             $hospitalId = $requested ?: $fromSession;
@@ -47,4 +47,3 @@ trait ResolvesPharmacyStore
         );
     }
 }
-
