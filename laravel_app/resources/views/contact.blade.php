@@ -58,8 +58,8 @@
                                     <div>
                                         <h3 class="font-bold text-slate-800">Email Us</h3>
                                         <p class="text-slate-600 text-sm mb-1">Send us your queries anytime.</p>
-                                        <a href="mailto:support@niufin.cloud" class="text-blue-600 font-bold hover:underline">
-                                            support@niufin.cloud
+                                        <a href="mailto:sultan@niufin.cloud" class="text-blue-600 font-bold hover:underline">
+                                            sultan@niufin.cloud
                                         </a>
                                     </div>
                                 </div>
