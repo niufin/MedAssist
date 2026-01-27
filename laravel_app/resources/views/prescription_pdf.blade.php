@@ -62,8 +62,8 @@
 
     @php
         $hospital = $doctor?->hospitalAdmin;
-        $hospitalName = $hospital?->name ?: ($doctor->medical_center_name ?? null);
-        $clinicTitle = $hospitalName ?: config('clinic.clinic_name', 'MEDASSIST MEDICAL CENTER');
+        $hospitalName = $hospital?->name ?: null;
+        $clinicTitle = $hospitalName ?: ($doctor->medical_center_name ?? config('clinic.clinic_name', 'MEDASSIST MEDICAL CENTER'));
         $clinicAddress = trim((string) ($hospital?->clinic_address ?? '')) !== '' ? $hospital->clinic_address : (config('clinic.address') ?: null);
         $clinicPhone = trim((string) ($hospital?->clinic_contact_number ?? '')) !== '' ? $hospital->clinic_contact_number : ($hospital?->contact_number ?: null);
         $clinicEmail = $hospital?->clinic_email ?: null;
@@ -87,9 +87,6 @@
             <tr>
                 <td class="header-left">
                     <div class="clinic-name">{{ $clinicTitle }}</div>
-                    @if($hospital && $doctor->medical_center_name)
-                        <div class="clinic-sub">{{ $doctor->medical_center_name }}</div>
-                    @endif
                     @if($clinicAddress)
                         <div class="clinic-sub">{{ $clinicAddress }}</div>
                     @endif
