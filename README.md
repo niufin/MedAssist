@@ -4,12 +4,22 @@ MedAssist (formerly Niufin AI Doctor) is a comprehensive healthcare platform tha
 
 ## 🏗 Project Structure
 
-The repository is organized into four main components:
+The repository is organized into these primary components:
 
 - **`android_app/`**: The native Android mobile application built with Kotlin. It provides the user interface for patients and doctors to interact with the system.
 - **`laravel_app/`**: The backend API and administrative dashboard built with Laravel 12. It handles user authentication, data management, prescriptions, visit connectivity, role-based portals, and integration with the AI service.
 - **`python_service/`**: An AI-powered microservice built with FastAPI. It utilizes LangChain, ChromaDB/FAISS, and OpenAI-compatible models to provide RAG (Retrieval-Augmented Generation) capabilities, medical document analysis, and intelligent query responses.
 - **`wpf_app/`**: The native Windows desktop application built with WPF and .NET 8, providing a seamless desktop experience for clinic staff.
+
+Additional packaging / desktop tooling included in this repo:
+- **`windows_app/`**: Electron-based Windows wrapper.
+- **`native_windows_app/`**: Python-native Windows wrapper assets/scripts.
+- **WiX installer files**: `Product.wxs`, `.wix/` for building MSI installers.
+
+For component-specific setup notes, also see:
+- [laravel_app/README.md](laravel_app/README.md)
+- [python_service/scripts/windows-service-nssm.md](python_service/scripts/windows-service-nssm.md)
+- [android_app/README.md](android_app/README.md)
 
 ## 🧭 System Architecture (High-Level)
 
@@ -69,8 +79,8 @@ Before running the project, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/niufin/Niufin-Doctor.git
-cd Niufin-Doctor
+git clone https://github.com/niufin/MedAssist.git
+cd MedAssist
 ```
 
 ### 2. Laravel Backend Setup

@@ -1,6 +1,6 @@
-# Doctor App (Android)
+# MedAssist (Android)
 
-This is a native Android application wrapper for the Doctor Niufin Cloud platform.
+This is a native Android application wrapper for the MedAssist web platform.
 
 ## Setup
 

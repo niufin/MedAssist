@@ -1,6 +1,6 @@
-# Doctor AI - Hospital Management System
+# MedAssist (Laravel App)
 
-Doctor AI is a comprehensive hospital management system designed to streamline healthcare workflows by connecting Doctors, Pharmacists, Lab Assistants, and Patients into a single unified platform.
+MedAssist is a hospital management system designed to streamline workflows by connecting Doctors, Pharmacists, Lab Assistants, Patients, and Hospital Admins in a single platform.
 
 ## Key Features
 
@@ -25,6 +25,10 @@ Doctor AI is a comprehensive hospital management system designed to streamline h
 - **Framework**: Laravel
 - **Frontend**: Blade Templates, Tailwind CSS
 - **Database**: MySQL
+
+## Setup
+
+See the root README for the full installation steps: [README.md](../README.md)
 
 ## License
 

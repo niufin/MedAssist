@@ -6,7 +6,8 @@
 3. Run:
 
 ```powershell
-e:\Websites\doctor.niufin.cloud\python_service\scripts\install-nssm-service.ps1 `
+$RepoRoot = "C:\path\to\MedAssist"
+& "$RepoRoot\python_service\scripts\install-nssm-service.ps1" `
   -ServiceName "MedAssistAI" `
   -NssmPath "C:\path\to\nssm.exe" `
   -SvcHost "127.0.0.1" `
@@ -21,7 +22,8 @@ Logs are written to:
 Open **PowerShell as Administrator** and run:
 
 ```powershell
-e:\Websites\doctor.niufin.cloud\python_service\scripts\uninstall-nssm-service.ps1 `
+$RepoRoot = "C:\path\to\MedAssist"
+& "$RepoRoot\python_service\scripts\uninstall-nssm-service.ps1" `
   -ServiceName "MedAssistAI" `
   -NssmPath "C:\path\to\nssm.exe"
 ```
