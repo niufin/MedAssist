@@ -778,6 +778,7 @@ class DoctorController extends Controller
     // --- UPLOAD REPORT ---
     public function uploadReport(Request $request)
     {
+        set_time_limit(300);
         $request->validate([
             'reports' => 'required',
             'reports.*' => 'file|mimes:pdf,jpg,jpeg,png,bmp,tiff|max:10240',
@@ -808,12 +809,31 @@ class DoctorController extends Controller
             $fullPath = $destinationPath . '/' . $filename;
 
             $extractedText = "Error reading text.";
+            $ocrMetaHtml = '';
             try {
                 $aiUrl = config('services.ai_service.url');
-                $response = Http::timeout(60)->post($aiUrl . '/read-report', ['file_path' => $fullPath]);
+                $response = Http::timeout(180)->post($aiUrl . '/read-report', ['file_path' => $fullPath]);
                 $data = $response->json();
                 if (is_array($data) && !empty($data['text'])) {
                     $extractedText = $data['text'];
+                }
+                if (is_array($data)) {
+                    $metaParts = [];
+                    if (!empty($data['method']) && is_string($data['method'])) {
+                        $metaParts[] = 'OCR: ' . $data['method'];
+                    }
+                    if (isset($data['score']) && is_numeric($data['score'])) {
+                        $metaParts[] = 'score: ' . number_format((float) $data['score'], 2);
+                    }
+                    if (!empty($data['warnings']) && is_array($data['warnings'])) {
+                        $warn = array_values(array_filter(array_map('strval', $data['warnings'])));
+                        if (!empty($warn)) {
+                            $metaParts[] = 'notes: ' . implode(', ', array_slice($warn, 0, 4));
+                        }
+                    }
+                    if (!empty($metaParts)) {
+                        $ocrMetaHtml = "<div class='text-[10px] text-gray-500 mb-2'>" . e(implode(' • ', $metaParts)) . "</div>\n";
+                    }
                 }
             } catch (\Exception $e) {
                 Log::error('read-report failed: ' . $e->getMessage());
@@ -822,6 +842,7 @@ class DoctorController extends Controller
             $userMsg = "📄 **UPLOADED REPORT:** " . $file->getClientOriginalName() . "\n" .
                        "<details><summary class='cursor-pointer text-blue-500 text-xs font-bold mt-2'>Click to view extracted text content</summary>\n" .
                        "<div class='mt-2 p-2 bg-gray-100 rounded text-xs font-mono text-gray-600 max-h-40 overflow-y-auto'>\n" .
+                       $ocrMetaHtml .
                        "[SYSTEM: LAB DATA START]\n" . $extractedText . "\n[SYSTEM: LAB DATA END]\n" .
                        "</div></details>";
 
@@ -850,6 +871,7 @@ class DoctorController extends Controller
     // --- UPDATE PRESCRIPTION FROM CHAT ---
     public function updatePrescriptionFromChat(Request $request)
     {
+        set_time_limit(300);
         $request->validate(['consultation_id' => 'required']);
         $c = Consultation::findOrFail($request->consultation_id);
         $this->authorizeConsultationAccess($c);
@@ -870,7 +892,7 @@ class DoctorController extends Controller
             $aiUrl = config('services.ai_service.url');
             foreach ($reports as $report) {
                 try {
-                    $response = Http::timeout(30)->post($aiUrl . '/read-report', [
+                    $response = Http::timeout(180)->post($aiUrl . '/read-report', [
                         'file_path' => storage_path('app/public/' . $report->file_path)
                     ]);
                     $data = $response->json();
@@ -939,6 +961,7 @@ class DoctorController extends Controller
     // --- ANALYZE LAB REPORTS ---
     public function analyzeReports(Request $request)
     {
+        set_time_limit(300);
         $request->validate(['consultation_id' => 'required']);
         $c = Consultation::findOrFail($request->consultation_id);
         
@@ -951,7 +974,7 @@ class DoctorController extends Controller
             $aiUrl = config('services.ai_service.url');
             foreach ($reports as $report) {
                 try {
-                    $response = Http::timeout(30)->post($aiUrl . '/read-report', [
+                    $response = Http::timeout(180)->post($aiUrl . '/read-report', [
                         'file_path' => storage_path('app/public/' . $report->file_path)
                     ]);
                     $data = $response->json();
@@ -979,6 +1002,7 @@ class DoctorController extends Controller
     // --- UPDATE PRESCRIPTION FROM REPORTS ---
     public function updatePrescriptionFromReports(Request $request)
     {
+        set_time_limit(300);
         $request->validate(['consultation_id' => 'required']);
         $c = Consultation::findOrFail($request->consultation_id);
         $this->authorizeConsultationAccess($c);
@@ -1276,7 +1300,7 @@ class DoctorController extends Controller
                     throw new \RuntimeException('AI service URL is not configured.');
                 }
                 $start = microtime(true);
-                $response = Http::timeout(120)->post($aiUrl . '/chat', [
+                $response = Http::timeout(180)->post($aiUrl . '/chat', [
                     'current_input' => $input,
                     'history' => $chatHistory,
                     'mode' => $mode,
