@@ -5,10 +5,12 @@ from openai import OpenAI
 import os
 import sys
 import json
+import io
+import base64
 import re
 import pdfplumber
 import pytesseract
-from PIL import Image
+from PIL import Image, ImageFilter, ImageOps
 from dotenv import load_dotenv
 import threading
 
@@ -81,10 +83,295 @@ class ChatRequest(BaseModel):
 class ReportRequest(BaseModel):
     file_path: str
 
+class ReportResponse(BaseModel):
+    text: str
+    method: str | None = None
+    score: float | None = None
+    warnings: list[str] = []
+
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=OPENROUTER_API_KEY,
 )
+
+def _safe_str(v) -> str:
+    try:
+        return str(v)
+    except Exception:
+        return ""
+
+def _normalize_whitespace(text: str) -> str:
+    return " ".join((text or "").split())
+
+def _alnum_ratio(text: str) -> float:
+    s = "".join((text or "").split())
+    if not s:
+        return 0.0
+    ok = sum(1 for ch in s if ch.isalnum())
+    return ok / max(1, len(s))
+
+def _ocr_quality_score(text: str) -> float:
+    t = (text or "").strip()
+    if not t:
+        return 0.0
+    ln = len(t)
+    ratio = _alnum_ratio(t)
+    return (min(ln, 2000) / 2000.0) * 0.65 + ratio * 0.35
+
+def _otsu_threshold(gray: Image.Image) -> int:
+    hist = gray.histogram()
+    if len(hist) < 256:
+        hist = (hist + [0] * 256)[:256]
+    total = sum(hist)
+    if total <= 0:
+        return 180
+    sum_total = 0.0
+    for i, h in enumerate(hist[:256]):
+        sum_total += i * h
+
+    sum_b = 0.0
+    w_b = 0.0
+    max_var = -1.0
+    threshold = 180
+    for i in range(256):
+        w_b += hist[i]
+        if w_b == 0:
+            continue
+        w_f = total - w_b
+        if w_f == 0:
+            break
+        sum_b += i * hist[i]
+        m_b = sum_b / w_b
+        m_f = (sum_total - sum_b) / w_f
+        var_between = w_b * w_f * (m_b - m_f) * (m_b - m_f)
+        if var_between > max_var:
+            max_var = var_between
+            threshold = i
+    return int(threshold)
+
+def _prepare_image_for_ocr(img: Image.Image, variant: str) -> Image.Image:
+    img = ImageOps.exif_transpose(img)
+    if img.mode not in ("RGB", "L"):
+        img = img.convert("RGB")
+
+    if variant == "gray":
+        gray = img.convert("L")
+        gray = ImageOps.autocontrast(gray)
+        gray = gray.filter(ImageFilter.MedianFilter(size=3))
+        gray = gray.filter(ImageFilter.UnsharpMask(radius=2, percent=160, threshold=3))
+        return gray
+
+    if variant == "bw":
+        gray = _prepare_image_for_ocr(img, "gray")
+        thr = _otsu_threshold(gray)
+        bw = gray.point(lambda p, t=thr: 255 if p >= t else 0).convert("L")
+        return bw
+
+    if variant == "gray2x":
+        gray = _prepare_image_for_ocr(img, "gray")
+        w, h = gray.size
+        max_side = max(w, h)
+        if max_side < 1400:
+            scale = 2.0
+        else:
+            scale = min(2.0, 2600 / max_side)
+        if scale != 1.0:
+            gray = gray.resize((max(1, int(w * scale)), max(1, int(h * scale))), Image.Resampling.LANCZOS)
+        return gray
+
+    return _prepare_image_for_ocr(img, "gray")
+
+def _crop_to_content(gray: Image.Image) -> Image.Image:
+    try:
+        inv = ImageOps.invert(gray.convert("L"))
+        bbox = inv.getbbox()
+        if bbox:
+            x0, y0, x1, y1 = bbox
+            pad = 12
+            x0 = max(0, x0 - pad)
+            y0 = max(0, y0 - pad)
+            x1 = min(gray.size[0], x1 + pad)
+            y1 = min(gray.size[1], y1 + pad)
+            if (x1 - x0) > 40 and (y1 - y0) > 40:
+                return gray.crop((x0, y0, x1, y1))
+    except Exception:
+        pass
+    return gray
+
+def _tesseract_ocr(img: Image.Image) -> tuple[str, float | None]:
+    config = os.getenv("REPORT_TESSERACT_CONFIG") or "--oem 3 --psm 6 --dpi 300"
+    lang = (os.getenv("REPORT_TESSERACT_LANG") or "eng").strip()
+    try:
+        from pytesseract import Output
+        d = pytesseract.image_to_data(img, lang=lang, config=config, output_type=Output.DICT)
+        confs = []
+        for c in d.get("conf", []) or []:
+            try:
+                v = float(c)
+            except Exception:
+                continue
+            if v >= 0:
+                confs.append(v)
+        avg_conf = (sum(confs) / len(confs)) if confs else None
+    except Exception:
+        avg_conf = None
+
+    text = pytesseract.image_to_string(img, lang=lang, config=config)
+    return _safe_str(text), avg_conf
+
+def _vision_ocr_from_pil(img: Image.Image) -> str:
+    model = (os.getenv("REPORT_VISION_MODEL") or "openai/gpt-4o-mini").strip()
+    buf = io.BytesIO()
+    rgb = ImageOps.exif_transpose(img)
+    if rgb.mode != "RGB":
+        rgb = rgb.convert("RGB")
+    rgb.save(buf, format="JPEG", quality=92, optimize=True)
+    b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+    data_url = "data:image/jpeg;base64," + b64
+    messages = [
+        {
+            "role": "system",
+            "content": "Extract all readable text from the medical report image. If the image contains tables, format them as Markdown tables. Return the content exactly as it appears, correcting for any OCR errors or artifacts. Do not include any conversational text.",
+        },
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "Perform OCR on this image and output only the text."},
+                {"type": "image_url", "image_url": {"url": data_url}},
+            ],
+        },
+    ]
+    completion = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        temperature=0.0,
+        top_p=1,
+    )
+    return _safe_str(completion.choices[0].message.content or "")
+
+def _ocr_image_best_effort(path: str) -> tuple[str, str, float, list[str]]:
+    warnings: list[str] = []
+    img = Image.open(path)
+    mode = (os.getenv("REPORT_OCR_MODE") or "auto").strip().lower()
+    if mode == "vision":
+        try:
+            vtext = _normalize_whitespace(_vision_ocr_from_pil(img))
+            vscore = _ocr_quality_score(vtext)
+            if vscore < 0.12:
+                warnings.append("low_ocr_score")
+            return vtext, "vision", float(vscore), warnings
+        except Exception:
+            warnings.append("vision_ocr_failed")
+    variants = ["gray", "bw", "gray2x"]
+    best = {"text": "", "score": 0.0, "method": "tesseract", "conf": None}
+
+
+    for v in variants:
+        prepared = _prepare_image_for_ocr(img, v)
+        prepared = _crop_to_content(prepared)
+        text, conf = _tesseract_ocr(prepared)
+        cleaned = _normalize_whitespace(text)
+        score = _ocr_quality_score(cleaned)
+        if conf is not None:
+            score = score * 0.85 + min(max(conf / 100.0, 0.0), 1.0) * 0.15
+        if score > best["score"]:
+            best = {"text": cleaned, "score": score, "method": f"tesseract:{v}", "conf": conf}
+
+    if best["score"] < 0.12:
+        warnings.append("low_ocr_score")
+
+    if mode == "auto" and best["score"] < float(os.getenv("REPORT_OCR_VISION_THRESHOLD") or "0.8"):
+        try:
+            vtext = _normalize_whitespace(_vision_ocr_from_pil(img))
+            vscore = _ocr_quality_score(vtext)
+            if vscore > best["score"]:
+                return vtext, "vision_fallback", float(vscore), list(dict.fromkeys(warnings + ["used_vision_fallback"]))
+        except Exception:
+            warnings.append("vision_ocr_failed")
+
+    return best["text"], best["method"], float(best["score"]), warnings
+
+def _extract_text_from_pdf(path: str) -> tuple[str, str, float, list[str]]:
+    warnings: list[str] = []
+    extracted_text = ""
+    try:
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    extracted_text += text + "\n"
+    except Exception:
+        extracted_text = ""
+
+    cleaned = _normalize_whitespace(extracted_text)
+    if len(cleaned) >= 200:
+        return cleaned, "pdfplumber", _ocr_quality_score(cleaned), warnings
+
+    try:
+        import fitz  # PyMuPDF
+        doc = fitz.open(path)
+        max_pages = int(os.getenv("REPORT_OCR_MAX_PAGES") or "5")
+        dpi = int(os.getenv("REPORT_OCR_PDF_DPI") or "220")
+        zoom = dpi / 72.0
+        mat = fitz.Matrix(zoom, zoom)
+        parts: list[str] = []
+        for i in range(min(doc.page_count, max_pages)):
+            page = doc.load_page(i)
+            pix = page.get_pixmap(matrix=mat, alpha=False)
+            img_bytes = pix.tobytes("png")
+            img = Image.open(io.BytesIO(img_bytes))
+            text, method, score, w = _ocr_image_best_effort_from_image(img)
+            parts.append(text)
+            warnings.extend(w)
+        merged = _normalize_whitespace("\n".join([p for p in parts if p]))
+        score = _ocr_quality_score(merged)
+        if merged:
+            return merged, "pdf_ocr", score, warnings
+    except Exception:
+        warnings.append("pdf_ocr_failed")
+
+    return cleaned, "pdfplumber", _ocr_quality_score(cleaned), warnings
+
+def _ocr_image_best_effort_from_image(img: Image.Image) -> tuple[str, str, float, list[str]]:
+    warnings: list[str] = []
+    mode = (os.getenv("REPORT_OCR_MODE") or "auto").strip().lower()
+    if mode == "vision":
+        try:
+            vtext = _normalize_whitespace(_vision_ocr_from_pil(img))
+            vscore = _ocr_quality_score(vtext)
+            if vscore < 0.12:
+                warnings.append("low_ocr_score")
+            return vtext, "vision", float(vscore), warnings
+        except Exception:
+            warnings.append("vision_ocr_failed")
+
+    variants = ["gray", "bw", "gray2x"]
+    best = {"text": "", "score": 0.0, "method": "tesseract", "conf": None}
+
+    for v in variants:
+        prepared = _prepare_image_for_ocr(img, v)
+        prepared = _crop_to_content(prepared)
+        text, conf = _tesseract_ocr(prepared)
+        cleaned = _normalize_whitespace(text)
+        score = _ocr_quality_score(cleaned)
+        if conf is not None:
+            score = score * 0.85 + min(max(conf / 100.0, 0.0), 1.0) * 0.15
+        if score > best["score"]:
+            best = {"text": cleaned, "score": score, "method": f"tesseract:{v}", "conf": conf}
+
+    if best["score"] < 0.12:
+        warnings.append("low_ocr_score")
+
+    if mode == "auto" and best["score"] < float(os.getenv("REPORT_OCR_VISION_THRESHOLD") or "0.8"):
+        try:
+            vtext = _normalize_whitespace(_vision_ocr_from_pil(img))
+            vscore = _ocr_quality_score(vtext)
+            if vscore > best["score"]:
+                return vtext, "vision_fallback", float(vscore), list(dict.fromkeys(warnings + ["used_vision_fallback"]))
+        except Exception:
+            warnings.append("vision_ocr_failed")
+
+    return best["text"], best["method"], float(best["score"]), warnings
 
 def load_memory_db():
     global db, embedding_function, db_backend
@@ -240,22 +527,15 @@ def route_retrieval(patient_age: str, patient_gender: str, patient_symptoms: str
 @app.post("/read-report")
 def read_report(request: ReportRequest):
     print(f"\n--- PROCESSING REPORT: {request.file_path} ---")
-    extracted_text = ""
     try:
         ext = os.path.splitext(request.file_path)[1].lower()
         if ext == ".pdf":
-            with pdfplumber.open(request.file_path) as pdf:
-                for page in pdf.pages:
-                    text = page.extract_text()
-                    if text: extracted_text += text + "\n"
-        elif ext in [".jpg", ".jpeg", ".png", ".bmp"]:
-            text = pytesseract.image_to_string(Image.open(request.file_path))
-            extracted_text += text
-        else:
-            return {"error": "Unsupported file format."}
-        
-        cleaned_text = " ".join(extracted_text.split())
-        return {"text": cleaned_text}
+            text, method, score, warnings = _extract_text_from_pdf(request.file_path)
+            return {"text": text, "method": method, "score": score, "warnings": warnings}
+        if ext in [".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff"]:
+            text, method, score, warnings = _ocr_image_best_effort(request.file_path)
+            return {"text": text, "method": method, "score": score, "warnings": warnings}
+        return {"error": "Unsupported file format."}
     except Exception as e:
         return {"error": str(e)}
 
