@@ -43,7 +43,7 @@ Your AI-powered healthcare companion for Doctors, Pharmacists, and Patients.
 
 ---
 
-## Feature Graphics Text Ideas
+6## Feature Graphics Text Ideas
 1.  **Unified Healthcare Platform:** Doctors, Pharmacists, Labs & Patients.
 2.  **AI-Powered Diagnosis:** Smarter decisions for better care.
 3.  **Digital Prescriptions:** Instant, error-free, and secure.
