@@ -90,6 +90,12 @@
                                 </div>
                             </div>
 
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Rack Location</label>
+                                <input type="text" name="rack_location" value="{{ old('rack_location') }}" class="mt-1 w-full border-gray-300 rounded shadow-sm" placeholder="e.g. A-05">
+                                @error('rack_location')<div class="text-sm text-red-600 mt-1">{{ $message }}</div>@enderror
+                            </div>
+
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">Expiry Date</label>

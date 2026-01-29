@@ -72,6 +72,7 @@
                             <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Medicine</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Composition</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiry</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
@@ -91,6 +92,7 @@
                                         $gd = $m->generic_display;
                                         $compText = is_array($gd) ? ($gd['text'] ?? null) : $gd;
                                         $expiryDates = $m->stockBatches->pluck('expiry_date')->unique()->sort();
+                                        $locations = $m->stockBatches->pluck('rack_location')->filter()->unique()->values();
                                     @endphp
                                     <tr>
                                         <td class="px-6 py-4">
@@ -101,6 +103,13 @@
                                                 {{ $m->manufacturer_name ?? '—' }}
                                                 @if($m->therapeutic_class) • {{ $m->therapeutic_class }} @endif
                                             </div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-normal max-w-xs">
+                                            @forelse($locations as $loc)
+                                                <span class="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded font-mono text-xs mb-1 mr-1">📍 {{ $loc }}</span>
+                                            @empty
+                                                <span class="text-gray-400 text-xs">—</span>
+                                            @endforelse
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-500 max-w-xs break-words">
                                             {{ $compText ?? '—' }}

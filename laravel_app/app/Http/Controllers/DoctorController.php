@@ -798,6 +798,9 @@ class DoctorController extends Controller
         $chatHistory = json_decode($c->chat_history, true) ?? [];
         $files = $request->file('reports', []);
         $uploadedCount = 0;
+        
+        $aggregatedTextParts = [];
+        $uploadedFileNames = [];
 
         foreach ($files as $file) {
             if (!$file) {
@@ -839,14 +842,13 @@ class DoctorController extends Controller
                 Log::error('read-report failed: ' . $e->getMessage());
             }
 
-            $userMsg = "📄 **UPLOADED REPORT:** " . $file->getClientOriginalName() . "\n" .
-                       "<details><summary class='cursor-pointer text-blue-500 text-xs font-bold mt-2'>Click to view extracted text content</summary>\n" .
-                       "<div class='mt-2 p-2 bg-gray-100 rounded text-xs font-mono text-gray-600 max-h-40 overflow-y-auto'>\n" .
-                       $ocrMetaHtml .
-                       "[SYSTEM: LAB DATA START]\n" . $extractedText . "\n[SYSTEM: LAB DATA END]\n" .
-                       "</div></details>";
-
-            $chatHistory[] = ['role' => 'user', 'content' => $userMsg];
+            $reportBlock = "<div class='mb-4 border-b pb-4 last:border-b-0 last:pb-0'>\n" . 
+                           "<div class='font-bold text-gray-700 mb-2'>📄 " . e($file->getClientOriginalName()) . "</div>\n" .
+                           $ocrMetaHtml . 
+                           "[SYSTEM: LAB DATA START]\n" . $extractedText . "\n[SYSTEM: LAB DATA END]\n" .
+                           "</div>";
+            $aggregatedTextParts[] = $reportBlock;
+            $uploadedFileNames[] = $file->getClientOriginalName();
 
             LabReport::create([
                 'consultation_id' => $c->id,
@@ -858,8 +860,21 @@ class DoctorController extends Controller
             $uploadedCount++;
         }
 
-        $c->chat_history = json_encode($chatHistory);
-        $c->save();
+        if ($uploadedCount > 0) {
+            $fileListStr = implode(', ', $uploadedFileNames);
+            $combinedHtml = implode("\n", $aggregatedTextParts);
+            
+            $userMsg = "📄 **UPLOADED REPORTS (" . $uploadedCount . "):** " . $fileListStr . "\n" .
+                       "<details><summary class='cursor-pointer text-blue-500 text-xs font-bold mt-2'>Click to view combined extracted text content</summary>\n" .
+                       "<div class='mt-2 p-2 bg-gray-100 rounded text-xs font-mono text-gray-600 max-h-60 overflow-y-auto'>\n" .
+                       $combinedHtml .
+                       "</div></details>";
+                       
+            $chatHistory[] = ['role' => 'user', 'content' => $userMsg];
+            
+            $c->chat_history = json_encode($chatHistory);
+            $c->save();
+        }
 
         if ($uploadedCount === 0) {
             return redirect()->back()->with('error', 'No valid files were uploaded.');

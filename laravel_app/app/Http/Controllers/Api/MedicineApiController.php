@@ -28,7 +28,7 @@ class MedicineApiController extends Controller
         if ($perPage > 200) $perPage = 200;
 
         $query = Medicine::query()
-            ->with(['manufacturer', 'dosageForm', 'route', 'ingredients', 'packages'])
+            ->with(['manufacturer', 'dosageForm', 'route', 'ingredients', 'packages', 'stockBatches'])
             ->where('is_active', true);
         $qEffective = $onlyBrands ? $this->stripDosagePrefix($q) : $q;
         $compositionEffective = $onlyBrands ? $this->stripDosagePrefix($composition) : $composition;
@@ -45,13 +45,22 @@ class MedicineApiController extends Controller
         if ($qEffective !== '' || $q !== '') {
             $qSearch = $onlyBrands ? $qEffective : $q;
             $qq = '%' . str_replace(' ', '%', $qSearch) . '%';
+            
+            // Stricter search for brand picker: Start of string or Start of word
+            $likeStart = $qSearch . '%';
+            $likeWord = '% ' . $qSearch . '%';
+            
             if ($onlyBrands && strtolower($searchBy) === 'brand') {
-                $query->where(function ($w) use ($qq) {
-                    $w->where('brand_name', 'like', $qq)
-                        ->orWhere('name', 'like', $qq)
-                        ->orWhere('manufacturer_raw', 'like', $qq)
-                        ->orWhereHas('manufacturer', function ($mw) use ($qq) {
-                            $mw->where('name', 'like', $qq);
+                $query->where(function ($w) use ($likeStart, $likeWord) {
+                    $w->where('brand_name', 'like', $likeStart)
+                        ->orWhere('brand_name', 'like', $likeWord)
+                        ->orWhere('name', 'like', $likeStart)
+                        ->orWhere('name', 'like', $likeWord)
+                        ->orWhere('manufacturer_raw', 'like', $likeStart)
+                        ->orWhere('manufacturer_raw', 'like', $likeWord)
+                        ->orWhereHas('manufacturer', function ($mw) use ($likeStart, $likeWord) {
+                            $mw->where('name', 'like', $likeStart)
+                               ->orWhere('name', 'like', $likeWord);
                         });
                 });
             } elseif ($onlyBrands && strtolower($searchBy) === 'composition') {
@@ -125,6 +134,7 @@ class MedicineApiController extends Controller
                             'strength_unit' => $ing->pivot->strength_unit,
                         ];
                     }),
+                    'rack_location' => $m->stockBatches->pluck('rack_location')->filter()->unique()->values()->join(', '),
                     'packages' => $m->packages->map(function ($p) {
                         return [
                             'pack_size_value' => $p->pack_size_value,
@@ -142,7 +152,7 @@ class MedicineApiController extends Controller
 
     public function show(Medicine $medicine)
     {
-        $medicine->load(['manufacturer','dosageForm','route','ingredients','packages']);
+        $medicine->load(['manufacturer','dosageForm','route','ingredients','packages', 'stockBatches']);
         $brandLabel = trim((string) ($medicine->brand_name ?: $medicine->name));
         $brandLabelClean = $this->stripDosagePrefix($brandLabel);
         return response()->json([
@@ -166,6 +176,7 @@ class MedicineApiController extends Controller
                     'strength_unit' => $ing->pivot->strength_unit,
                 ];
             }),
+            'rack_location' => $medicine->stockBatches->pluck('rack_location')->filter()->unique()->values()->join(', '),
             'packages' => $medicine->packages->map(function ($p) {
                 return [
                     'pack_size_value' => $p->pack_size_value,

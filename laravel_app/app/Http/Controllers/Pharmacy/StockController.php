@@ -54,6 +54,7 @@ class StockController extends Controller
             'mrp' => ['nullable', 'numeric', 'min:0'],
             'purchase_price' => ['nullable', 'numeric', 'min:0'],
             'sale_price' => ['nullable', 'numeric', 'min:0'],
+            'rack_location' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
         ]);
 
@@ -64,6 +65,7 @@ class StockController extends Controller
             ->where('mrp', $validated['mrp'] ?? null)
             ->where('purchase_price', $validated['purchase_price'] ?? null)
             ->where('sale_price', $validated['sale_price'] ?? null)
+            ->where('rack_location', $validated['rack_location'] ?? null)
             ->first();
 
         if (!$batch) {
@@ -75,6 +77,7 @@ class StockController extends Controller
                 'mrp' => $validated['mrp'] ?? null,
                 'purchase_price' => $validated['purchase_price'] ?? null,
                 'sale_price' => $validated['sale_price'] ?? null,
+                'rack_location' => $validated['rack_location'] ?? null,
                 'quantity_on_hand' => 0,
             ]);
         }

@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Contact Us - MedAssist</title>
+        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     </head>
@@ -58,8 +59,8 @@
                                     <div>
                                         <h3 class="font-bold text-slate-800">Email Us</h3>
                                         <p class="text-slate-600 text-sm mb-1">Send us your queries anytime.</p>
-                                        <a href="mailto:sultan@niufin.cloud" class="text-blue-600 font-bold hover:underline">
-                                            sultan@niufin.cloud
+                                        <a href="mailto:support@niufin.cloud" class="text-blue-600 font-bold hover:underline">
+                                            support@niufin.cloud
                                         </a>
                                     </div>
                                 </div>

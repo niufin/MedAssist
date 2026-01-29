@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $invoice->invoice_no }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <style>
         body { font-family: DejaVu Sans, Arial, sans-serif; color: #111827; font-size: 12px; }
         .page { max-width: 800px; margin: 0 auto; padding: 16px; }

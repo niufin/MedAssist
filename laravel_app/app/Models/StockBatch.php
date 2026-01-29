@@ -18,6 +18,7 @@ class StockBatch extends Model
         'purchase_price',
         'sale_price',
         'quantity_on_hand',
+        'rack_location',
     ];
 
     protected $casts = [

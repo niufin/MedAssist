@@ -4,22 +4,12 @@ MedAssist (formerly Niufin AI Doctor) is a comprehensive healthcare platform tha
 
 ## 🏗 Project Structure
 
-The repository is organized into these primary components:
+The repository is organized into four main components:
 
 - **`android_app/`**: The native Android mobile application built with Kotlin. It provides the user interface for patients and doctors to interact with the system.
 - **`laravel_app/`**: The backend API and administrative dashboard built with Laravel 12. It handles user authentication, data management, prescriptions, visit connectivity, role-based portals, and integration with the AI service.
 - **`python_service/`**: An AI-powered microservice built with FastAPI. It utilizes LangChain, ChromaDB/FAISS, and OpenAI-compatible models to provide RAG (Retrieval-Augmented Generation) capabilities, medical document analysis, and intelligent query responses.
 - **`wpf_app/`**: The native Windows desktop application built with WPF and .NET 8, providing a seamless desktop experience for clinic staff.
-
-Additional packaging / desktop tooling included in this repo:
-- **`windows_app/`**: Electron-based Windows wrapper.
-- **`native_windows_app/`**: Python-native Windows wrapper assets/scripts.
-- **WiX installer files**: `Product.wxs`, `.wix/` for building MSI installers.
-
-For component-specific setup notes, also see:
-- [laravel_app/README.md](laravel_app/README.md)
-- [python_service/scripts/windows-service-nssm.md](python_service/scripts/windows-service-nssm.md)
-- [android_app/README.md](android_app/README.md)
 
 ## 🧭 System Architecture (High-Level)
 
@@ -79,8 +69,8 @@ Before running the project, ensure you have the following installed:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/niufin/MedAssist.git
-cd MedAssist
+git clone https://github.com/niufin/Niufin-Doctor.git
+cd Niufin-Doctor
 ```
 
 ### 2. Laravel Backend Setup
@@ -157,10 +147,6 @@ CHROMA_DB_DIR=./chroma_db
 PDF_DIR=./pdfs
 ```
 
-Notes:
-- The public repository does not ship medical guideline PDFs. Place your own PDFs in `python_service/pdfs/`.
-- Never commit `.env` files or API keys to git.
-
 Start the API service for local development:
 ```bash
 # Assuming api.py is the entry point, or use uvicorn
@@ -186,6 +172,7 @@ On the Windows server, the AI service is managed via PowerShell helper scripts i
 * **AI Consultation**: Uses RAG to answer medical queries based on indexed PDFs and medical databases. Includes real-time indexing status surfaced on the doctor dashboard.
 * **Prescription Management**: Generate, save, and print PDF prescriptions directly from the doctor dashboard. Pharmacists can view prescriptions and mark fulfillment status.
 * **Lab Workflow**: Lab assistants can view prescriptions, upload lab reports, and see clear Pending/Report Uploaded statuses.
+* **Pharmacy Inventory**: Batch-level stock management with rack location tracking.
 * **Medical Document Analysis**: OCR and text extraction from uploaded medical reports.
 * **Role-Based Access**: Separate portals for Doctors, Pharmacists, Lab Assistants, Patients, and Hospital Admins, with visit connectivity between patient accounts and past consultations.
 * **Contact & Support**: Dedicated Contact Us page with direct WhatsApp integration (+91 33690 28316) for immediate support.
@@ -207,17 +194,16 @@ On the Windows server, the AI service is managed via PowerShell helper scripts i
 
 The project supports importing a large medicine catalog (including ingredient compositions and pack pricing) from:
 
-- A local CSV file (path depends on your machine), for example:
-  - `C:\path\to\indian_pharmaceutical_products_clean.csv`
+- `C:\\Users\\Sultan\\Downloads\\indian_pharmaceutical_products_clean.csv`
 
 ### Convert CSV → JSON only (no DB writes)
 ```bash
-php artisan pharmacy:import-csv --path="C:\path\to\indian_pharmaceutical_products_clean.csv" --output=storage/catalog/csv_only.json --no-db
+php artisan pharmacy:import-csv --path="C:\Users\Sultan\Downloads\indian_pharmaceutical_products_clean.csv" --output=storage/catalog/csv_only.json --no-db
 ```
 
 ### Import into DB + produce JSON/anomaly reports
 ```bash
-php artisan pharmacy:import-csv --path="C:\path\to\indian_pharmaceutical_products_clean.csv" --output=storage/catalog/csv_import_full.json --anomalies=storage/catalog/anomalies_full.csv
+php artisan pharmacy:import-csv --path="C:\Users\Sultan\Downloads\indian_pharmaceutical_products_clean.csv" --output=storage/catalog/csv_import_full.json --anomalies=storage/catalog/anomalies_full.csv
 ```
 
 Imported data is mapped into normalized tables:
@@ -225,6 +211,14 @@ Imported data is mapped into normalized tables:
 - `ingredients` + pivot (composition strengths)
 - `packages.price_inr` / `packages.mrp` (pricing)
 - `medicines.is_discontinued` (status)
+
+## 📦 Pharmacy Inventory & Rack Locations
+
+The system now supports granular inventory management:
+- **Batch-Level Tracking**: Medicines are tracked by specific batches (Stock In), each with its own expiry date and quantity.
+- **Rack Locations**: Each batch can be assigned a specific rack location (e.g., "Shelf A-1") during Stock In.
+- **Dispensing Visibility**: Pharmacists can see the exact rack location of the batch being dispensed directly on the Dispense page.
+- **Inventory View**: The main inventory list aggregates all rack locations for a medicine, making it easy to find where stock is stored.
 
 ## 📊 Current Project Status
 
@@ -239,6 +233,7 @@ The project is in an active development phase with the following recent updates:
 - **Workflow**: Extended lab and pharmacy workflows with View Prescription actions and clear lab report statuses.
 - **Database**: Updated schema to allow multiple consultations per patient (MRN not unique per consultation).
 - **Pharmacy**: Added full CSV-based pharmacy catalog ingestion.
+- **Pharmacy Inventory**: Moved rack location tracking to stock batches for granular location management per batch.
 - **Hospital Admin**: Added Hospital Dashboard navigation, hospital-scoped consultation history, and prescription editing access.
 - **Lab**: Extended Lab access to Hospital Admins (hospital-scoped), so the hospital can view/upload/manage reports.
 - **History Sync**: Enabled the Patient History **Sync** action wherever Patient History access is granted (scoped to the user’s hospital/visibility).
@@ -277,7 +272,7 @@ The project is in an active development phase with the following recent updates:
   - `cd laravel_app && php artisan safe:test`
 - **Destructive DB commands are blocked by default** on non-SQLite connections unless explicitly overridden via `ALLOW_DESTRUCTIVE_DB_COMMANDS=true`.
 - If MySQL data ever needs to be re-seeded (super admin + medicines CSV), use:
-  - `cd laravel_app && php artisan db:restore-mysql --csv-path="C:\path\to\indian_pharmaceutical_products_clean.csv"`
+  - `cd laravel_app && php artisan db:restore-mysql --csv-path="C:\Users\Sultan\Downloads\indian_pharmaceutical_products_clean.csv"`
 
 ## 📦 Android Release Process
 
@@ -292,4 +287,4 @@ To reproduce the signed release APK:
 
 ## 📄 License
 
-This project is open-sourced software licensed under the [MIT license](LICENSE).
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

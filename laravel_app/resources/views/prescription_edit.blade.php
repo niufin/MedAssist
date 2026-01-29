@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Prescription - {{ $c->patient_name }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -334,13 +335,15 @@
                 const strength = (m.strength || '').trim();
                 const form = (m.dosage_form || '').trim();
                 const company = (m.manufacturer || '').trim();
+                const rack = (m.rack_location || '').trim();
                 const metaParts = [];
                 if (comp) metaParts.push(comp);
                 if (strength) metaParts.push(strength);
                 if (form) metaParts.push(form);
                 if (company) metaParts.push(company);
-                const meta = metaParts.length ? `<div class="text-xs text-gray-500 mt-1">${metaParts.join(' • ')}</div>` : '';
-                parts.push(`<button type="button" class="w-full text-left px-3 py-2 hover:bg-blue-50 border-b border-gray-100" data-mid="${m.id || ''}" data-brand="${encodeURIComponent(brand)}" data-strength="${encodeURIComponent(strength)}" data-form="${encodeURIComponent(form)}" data-comp="${encodeURIComponent(comp)}"><div class="text-sm font-semibold text-gray-900">${brand}</div>${meta}</button>`);
+                if (rack) metaParts.push(`<span class="bg-yellow-100 text-yellow-800 px-1 rounded font-mono">📍 ${rack}</span>`);
+                const meta = metaParts.length ? `<div class="text-xs text-gray-500 mt-1 flex flex-wrap gap-x-2">${metaParts.join(' • ')}</div>` : '';
+                parts.push(`<button type="button" class="w-full text-left px-3 py-2 hover:bg-blue-50 border-b border-gray-100" data-mid="${m.id || ''}" data-brand="${encodeURIComponent(brand)}" data-strength="${encodeURIComponent(strength)}" data-form="${encodeURIComponent(form)}" data-comp="${encodeURIComponent(comp)}"><div class="text-sm font-semibold text-gray-900 flex justify-between"><span>${brand}</span>${rack ? `<span class="text-xs font-mono bg-yellow-100 text-yellow-800 px-1 rounded ml-2">📍 ${rack}</span>` : ''}</div>${meta}</button>`);
             });
 
             results.innerHTML = parts.join('');
